@@ -12,15 +12,15 @@ class DatabaseHandler:
         return cls.instance
 
     def __init__(self) -> None:
-        # if not USE_WEBHOOK:
-        self.conn = psycopg2.connect(
-            host="localhost",
-            database="postgres",
-            user="postgres",
-            password="whirlpool"
-        )
-        # else:
-        # self.conn = psycopg2.connect(PG_URI)
+        """THIS LINES FOR TESTING LOCALLY"""
+        # self.conn = psycopg2.connect(
+        #     host="localhost",
+        #     database="postgres",
+        #     user="postgres",
+        #     password="whirlpool"
+        # )
+        """THIS LINES FOR TESTING ON HEROKU"""
+        self.conn = psycopg2.connect(PG_URI)
         
         self.users_keys = ('pg_ig', 'telegram_id', 'permission', 'credentials')
         self.notification_keys = ('pg_ig', 'telegram_id', 'first_name', 'wakeup', 'bedtime', 'activities', 'stage', 'notifications')
