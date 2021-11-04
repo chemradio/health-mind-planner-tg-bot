@@ -3,11 +3,11 @@ import requests
 import sys
 import traceback
 
-USE_WEBHOOK = False
+USE_WEBHOOK = True
 APP_URL = 'https://whispering-depths-18963.herokuapp.com'
 PORT = int(os.environ.get('PORT', '8443'))
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
-print(BOT_TOKEN)
+
 
 def run_notification_thread():
     for thread in threading.enumerate():
