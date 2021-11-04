@@ -1,10 +1,9 @@
 import os
-from pprint import pprint
 import psycopg2
 from psycopg2.extras import Json, DictCursor
 
 PG_URI = os.environ.get('DATABASE_URL', 'localhost')
-
+print(f"PG_URI = {PG_URI}")
 
 class DatabaseHandler:
     def __new__(cls):

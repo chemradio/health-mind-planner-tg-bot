@@ -1,7 +1,5 @@
 from main_programm import *
 import requests
-import sys
-import traceback
 
 USE_WEBHOOK = True
 APP_URL = 'https://whispering-depths-18963.herokuapp.com'
