@@ -158,13 +158,15 @@ def push_notifications():
         
         now = datetime.now(zoneinfo.ZoneInfo("Europe/Moscow"))
         check_holiday = now + timedelta(hours=4)
+        check_holiday_sunday = now
 
 
-        if check_holiday.date().weekday() in (5,6):
+        if check_holiday.date().weekday() in (5,6) or check_holiday_sunday.date().weekday() in (5,6):
             print("It's holiday + 4:00 offset")
             time.sleep(60)
             continue
 
+        
         if notified_users:
             for user in notified_users:
                 user_id = user['telegram_id']
