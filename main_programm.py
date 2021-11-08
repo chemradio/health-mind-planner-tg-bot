@@ -161,7 +161,7 @@ def push_notifications():
         check_holiday_sunday = now
 
 
-        if check_holiday.date().weekday() in (5,6) or check_holiday_sunday.date().weekday() in (6):
+        if check_holiday.date().weekday() in (5,6) or check_holiday_sunday.date().weekday() == 6:
             print("It's holiday + 4:00 offset")
             time.sleep(60)
             continue
