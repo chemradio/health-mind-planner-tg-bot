@@ -4,6 +4,7 @@ notified_users = db.get_notified_users()
 
 if notified_users:
     for user in notified_users:
+        user_id = user['telegram_id']
         parameters = user['activities']
         for a_name in parameters.keys():
             parameters[a_name]['today_check'] = False
