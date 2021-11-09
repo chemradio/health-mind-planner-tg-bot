@@ -15,6 +15,7 @@ from telegram import (
     InlineKeyboardMarkup, 
     ParseMode,
     replymarkup,
+
 )
 
 from telegram.ext import (
@@ -157,14 +158,19 @@ def push_notifications():
         notified_users = db.get_notified_users()
         
         now = datetime.now(zoneinfo.ZoneInfo("Europe/Moscow"))
-        check_holiday = now + timedelta(hours=4)
-        check_holiday_sunday = now
+        
 
-
-        if check_holiday.date().weekday() in (5,6) or check_holiday_sunday.date().weekday() == 6:
-            print("It's holiday + 4:00 offset")
+        if now.date().weekday() in (5,6):
+            print("Holiday. No notifications.")
             time.sleep(60)
             continue
+
+        # check_holiday = now + timedelta(hours=4)
+        # check_holiday_sunday = now
+        # if check_holiday.date().weekday() in (5,6) or check_holiday_sunday.date().weekday() == 6:
+        #     print("It's holiday + 4:00 offset")
+        #     time.sleep(60)
+        #     continue
 
         
         if notified_users:
@@ -202,7 +208,8 @@ def push_notifications():
 
                     db.update_entry(user_id, {'activities': parameters})
                     print(f"Reset activities on wakeup for user {user['first_name']}")
-                    continue
+                    user['activities'] = parameters
+                    # continue
 
 
 
@@ -239,64 +246,74 @@ def push_notifications():
 
                     # check 1h notif conditions
                     if calculation in range(58, 61) and not a_data['1h_before_pushed']:
-                        msg = bot.send_message(
-                            chat_id=user_id,
-                            text=f"{ms.one_hour_before} <b>{a_name.lower()}</b>",
-                            parse_mode=ParseMode.HTML,
-                            reply_markup=remind_markup
-                        )
-                        print(msg)
-                        if msg:
-                            parameters = user['activities']
+                        try:
+                            msg = bot.send_message(
+                                chat_id=user_id,
+                                text=f"{ms.one_hour_before} <b>{a_name.lower()}</b>",
+                                parse_mode=ParseMode.HTML,
+                                reply_markup=remind_markup
+                            )
+                            print(msg)
+                            if msg:
+                                parameters = user['activities']
 
-                            parameters[a_name]['1h_before_pushed'] = True
+                                parameters[a_name]['1h_before_pushed'] = True
 
-                            db.update_entry(user_id, {'activities': parameters})
+                                db.update_entry(user_id, {'activities': parameters})
+                        except:
+                            pass
 
                     # check 10m notif conditions
                     elif calculation in range(8, 11) and not a_data['10m_before_pushed']:
-                        
-                        msg = bot.send_message(
-                            chat_id=user_id,
-                            text=f"До начала запланированной активности <b>{a_name.lower()}</b> осталось 10 минут.",
-                            parse_mode=ParseMode.HTML,
-                            reply_markup=remind_markup
-                        )
-                        print(msg)
-                        if msg:
-                            parameters = user['activities']
-                            parameters[a_name]['10m_before_pushed'] = True
-                            db.update_entry(user_id, {'activities': parameters})
+                        try:
+                            msg = bot.send_message(
+                                chat_id=user_id,
+                                text=f"До начала запланированной активности <b>{a_name.lower()}</b> осталось 10 минут.",
+                                parse_mode=ParseMode.HTML,
+                                reply_markup=remind_markup
+                            )
+                            print(msg)
+                            if msg:
+                                parameters = user['activities']
+                                parameters[a_name]['10m_before_pushed'] = True
+                                db.update_entry(user_id, {'activities': parameters})
+                        except:
+                            pass
 
                     # check 00 time main notification to start
                     elif calculation in range(-2, 1) and not a_data['on_time_pushed']:
-                        msg = bot.send_message(
-                            chat_id=user_id,
-                            text=f"Время активности <b>{a_name.lower()}</b> наступило. Подтвердите, что Вы приступили к её выполнению.",
-                            reply_markup=confirm_remind_markup,
-                            parse_mode = ParseMode.HTML
-                        )
-                        print(msg)
-                        if msg:
-                            parameters = user['activities']
-                            parameters[a_name]['on_time_pushed'] = True
-                            db.update_entry(user_id, {'activities': parameters})
+                        try:
+                            msg = bot.send_message(
+                                chat_id=user_id,
+                                text=f"Время активности <b>{a_name.lower()}</b> наступило. Подтвердите, что Вы приступили к её выполнению.",
+                                reply_markup=confirm_remind_markup,
+                                parse_mode = ParseMode.HTML
+                            )
+                            print(msg)
+                            if msg:
+                                parameters = user['activities']
+                                parameters[a_name]['on_time_pushed'] = True
+                                db.update_entry(user_id, {'activities': parameters})
+                        except:
+                            pass
 
                     # check 5mafter notif conditions
                     elif five_min_calc in range(-7, -4) and not a_data['5m_after_pushed']:
                         confirm_act_start = InlineKeyboardMarkup([[InlineKeyboardButton(f"Подтверждаю", callback_data=f'confirm_act_start_{a_name}')]])
-
-                        msg = bot.send_message(
-                            chat_id=user_id,
-                            text=f"Время активности <b>{a_name.lower()}</b> наступило. Подтвердите, что Вы приступили к её выполнению.",
-                            reply_markup=confirm_remind_markup,
-                            parse_mode = ParseMode.HTML
-                        )
-                        print(msg)
-                        if msg:
-                            parameters = user['activities']
-                            parameters[a_name]['5m_after_pushed'] = True
-                            db.update_entry(user_id, {'activities': parameters})
+                        try:
+                            msg = bot.send_message(
+                                chat_id=user_id,
+                                text=f"Время активности <b>{a_name.lower()}</b> наступило. Подтвердите, что Вы приступили к её выполнению.",
+                                reply_markup=confirm_remind_markup,
+                                parse_mode = ParseMode.HTML
+                            )
+                            print(msg)
+                            if msg:
+                                parameters = user['activities']
+                                parameters[a_name]['5m_after_pushed'] = True
+                                db.update_entry(user_id, {'activities': parameters})
+                        except:
+                            pass
 
         time.sleep(60)
 
