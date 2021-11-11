@@ -5,6 +5,8 @@ from psycopg2.extras import Json, DictCursor
 PG_URI = os.environ.get('DATABASE_URL', 'localhost')
 print(f"PG_URI = {PG_URI}")
 
+# PG_URI = 'postgres://wdutabnnunnisl:719441e1ad3e5e9c49bc72271c88a201a08dba4e8acb27a5a60a7d2f27499e7d@ec2-54-228-99-58.eu-west-1.compute.amazonaws.com:5432/d2mjjih48qpdm1'
+
 class DatabaseHandler:
     def __new__(cls):
         if not hasattr(cls, 'instance'):
@@ -216,6 +218,25 @@ class DatabaseHandler:
         else:
             return False    
 
+
+    def reset_pushed_notifications(self, tg_id=None):
+        notified_users = self.get_notified_users()
+        if notified_users:
+            for user in notified_users:
+                user_id = user['telegram_id']
+                if tg_id:
+                    if user_id != tg_id:
+                        continue
+
+                parameters = user['activities']
+                for a_name in parameters.keys():
+                    parameters[a_name]['today_check'] = False
+                    parameters[a_name]['1h_before_pushed'] = False
+                    parameters[a_name]['10m_before_pushed'] = False
+                    parameters[a_name]['on_time_pushed'] = False
+                    parameters[a_name]['5m_after_pushed'] = False
+
+                self.update_entry(user_id, {'activities': parameters})
 
     ################ admin related ################
     

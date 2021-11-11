@@ -158,7 +158,12 @@ def push_notifications():
         notified_users = db.get_notified_users()
         
         now = datetime.now(zoneinfo.ZoneInfo("Europe/Moscow"))
-        
+
+        try:
+            if now.hour == '4' and now.minute in [1,2,3,4,5,6,7,8,9]:
+                db.reset_pushed_notifications()
+        except:
+            print('COULD NOT RESET NOTIFICATIONS')
 
         if now.date().weekday() in (5,6):
             print("Holiday. No notifications.")
@@ -176,7 +181,8 @@ def push_notifications():
         if notified_users:
             for user in notified_users:
                 user_id = user['telegram_id']
-                print(f"\n\nCheck notifications for user: {user['first_name']}")
+                pprint(f"\n\nCheck notifications for user: {user['first_name']}")
+                pprint(user)
 
                 # now = datetime.now()
                 now = datetime.now(zoneinfo.ZoneInfo("Europe/Moscow"))
