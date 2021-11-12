@@ -160,37 +160,34 @@ def push_notifications():
         now = datetime.now(zoneinfo.ZoneInfo("Europe/Moscow"))
 
         try:
-            if now.hour == '4' and now.minute in [1,2,3,4,5,6,7,8,9]:
+            if now.hour == 4 and now.minute in [1,2,3,4,5,6,7,8,9]:
                 db.reset_pushed_notifications()
         except:
             print('COULD NOT RESET NOTIFICATIONS')
 
-        if now.date().weekday() in (5,6):
+        # """check for Holiday
+        # saturday start is offseted +4hours 
+        # due to night activities on friday"""
+        saturday_check = now - timedelta(hours=4)
+        if saturday_check.date().weekday() == 5 or now.date().weekday() == 6:
+            db.reset_pushed_notifications()
             print("Holiday. No notifications.")
             time.sleep(60)
             continue
-
-        # check_holiday = now + timedelta(hours=4)
-        # check_holiday_sunday = now
-        # if check_holiday.date().weekday() in (5,6) or check_holiday_sunday.date().weekday() == 6:
-        #     print("It's holiday + 4:00 offset")
-        #     time.sleep(60)
-        #     continue
-
         
         if notified_users:
             for user in notified_users:
                 user_id = user['telegram_id']
-                pprint(f"\n\nCheck notifications for user: {user['first_name']}")
+                print(f"\n\nCheck notifications for user: {user['first_name']}")
                 pprint(user)
 
-                # now = datetime.now()
                 now = datetime.now(zoneinfo.ZoneInfo("Europe/Moscow"))
                 print(f"Notifications: current time {now}")
                 
                 user_asleep = False if check_activity_time_awake(user_id, now.strftime("%H:%M")) else True
                 if user_asleep:
-                    print(f"User {user['first_name']} is asleep...")
+                    db.reset_pushed_notifications(tg_id=user_id)
+                    print(f"User {user['first_name']} is asleep... Resetting notifications")
                     continue
 
                 now_day_mins_passed = now.hour*60+now.minute
@@ -199,23 +196,23 @@ def push_notifications():
                 wu_day_mins_passed = wu_time.total_minutes
                 
                 # reset activities to false on wakeup
-                if wu_day_mins_passed - now_day_mins_passed == 0:
-                    holiday_check = False
-                    if now.today().weekday() in (5,6):
-                        holiday_check = True
+                # if wu_day_mins_passed - now_day_mins_passed == 0:
+                #     holiday_check = False
+                #     if now.today().weekday() in (5,6):
+                #         holiday_check = True
 
-                    parameters = user['activities']
-                    for a_name in parameters.keys():
-                        parameters[a_name]['today_check'] = False
-                        parameters[a_name]['1h_before_pushed'] = False
-                        parameters[a_name]['10m_before_pushed'] = False
-                        parameters[a_name]['on_time_pushed'] = False
-                        parameters[a_name]['5m_after_pushed'] = False
+                #     parameters = user['activities']
+                #     for a_name in parameters.keys():
+                #         parameters[a_name]['today_check'] = False
+                #         parameters[a_name]['1h_before_pushed'] = False
+                #         parameters[a_name]['10m_before_pushed'] = False
+                #         parameters[a_name]['on_time_pushed'] = False
+                #         parameters[a_name]['5m_after_pushed'] = False
 
-                    db.update_entry(user_id, {'activities': parameters})
-                    print(f"Reset activities on wakeup for user {user['first_name']}")
-                    user['activities'] = parameters
-                    # continue
+                #     db.update_entry(user_id, {'activities': parameters})
+                #     print(f"Reset activities on wakeup for user {user['first_name']}")
+                #     user['activities'] = parameters
+                #     # continue
 
 
 
@@ -225,7 +222,7 @@ def push_notifications():
                     if a_data['today_check']:
                         continue
                     
-                    print(f"Activity: {a_name}, data: {a_data}")
+                    # print(f"Activity: {a_name}, data: {a_data}")
                     a_time = TimeBase(a_data['scheduled_time'])
                     a_day_mins_passed = a_time.total_minutes
 
