@@ -156,45 +156,89 @@ def push_notifications():
     while True:
         print("Notification thread iteration")
         notified_users = db.get_notified_users()
-        
         now = datetime.now(zoneinfo.ZoneInfo("Europe/Moscow"))
+        # try:
+        #     if now.hour == 4 and now.minute in [1,2,3,4,5,6,7,8,9]:
+        #         db.reset_pushed_notifications()
+        # except:
+        #     print('COULD NOT RESET NOTIFICATIONS')
 
-        try:
-            if now.hour == 4 and now.minute in [1,2,3,4,5,6,7,8,9]:
-                db.reset_pushed_notifications()
-        except:
-            print('COULD NOT RESET NOTIFICATIONS')
-
-        # """check for Holiday
-        # saturday start is offseted +4hours 
-        # due to night activities on friday"""
-        saturday_check = now - timedelta(hours=4)
-        if saturday_check.date().weekday() == 5 or now.date().weekday() == 6:
+        # not pushing on sunday
+        if now.date().weekday() == 6:
+            print("sunday... no notifications. Resetting notifications.")
             db.reset_pushed_notifications()
-            print("Holiday. No notifications.")
-            time.sleep(60)
-            continue
         
+        # iterate over notified users
         if notified_users:
             for user in notified_users:
+                user_first_name = user['first_name']
                 user_id = user['telegram_id']
-                print(f"\n\nCheck notifications for user: {user['first_name']}")
-                pprint(user)
+                print(f"\n\nCheck notifications for user: {user_first_name}")
 
-                now = datetime.now(zoneinfo.ZoneInfo("Europe/Moscow"))
-                print(f"Notifications: current time {now}")
+                # get wakeup and bedtime TimeBases + now TimeBase
+                wu_time = TimeBase(user['wakeup'])
+                bt_time = TimeBase(user['bedtime'])
+                now_tb = TimeBase(now.strftime("%H:%M"))
+
+                # check is owl?
+                is_owl = False
+                if wu_time > bt_time:
+                    is_owl = True
+                elif wu_time < bt_time:
+                    is_owl = False
+                else:
+                    continue
+
+                # log essential data
+                print(f"{user_first_name} wakes up at {wu_time} and goes to bed at {bt_time}")
+                print(f"{user_first_name} is owl?: {is_owl}")
+
+                # check for trailing friday in saturday
+                if now.weekday() == 6:
+                    if is_owl:
+                        if now_tb > bt_time:
+                            print(f"No Friday trail for owl {user_first_name}... Resetting notifications.")
+                            db.reset_pushed_notifications(tg_id=user_id)
+                            continue
+                        else:
+                            # continue to notifications
+                            pass
+                    else:
+                        continue
                 
+                # check for trailing sunday in monday
+                if now.weekday() == 0:
+                    if now_tb < wu_time:
+                        print(f"{user_first_name} sunday tailing... Resetting notifications")
+                        db.reset_pushed_notifications(tg_id=user_id)
+                        continue
+                
+                # saturday_check = now - timedelta(hours=4)
+                # if saturday_check.date().weekday() == 5 or now.date().weekday() == 6:
+                #     db.reset_pushed_notifications()
+                #     print("Holiday. No notifications.")
+                #     time.sleep(60)
+                #     continue
+
+                pprint(user)
+                print(f"Notifications: current time {now}")
+                now_day_mins_passed = now.hour*60+now.minute
+                wu_day_mins_passed = wu_time.total_minutes
+
+                # check if user is asleep
                 user_asleep = False if check_activity_time_awake(user_id, now.strftime("%H:%M")) else True
-                if user_asleep:
+                if user_asleep :
                     db.reset_pushed_notifications(tg_id=user_id)
                     print(f"User {user['first_name']} is asleep... Resetting notifications")
                     continue
-
-                now_day_mins_passed = now.hour*60+now.minute
-
-                wu_time = TimeBase(user['wakeup'])
-                wu_day_mins_passed = wu_time.total_minutes
                 
+                # # check if user already woke up on monday
+                # if now.weekday() == 0:
+                #     if now_tb < wu_time:
+                #         db.reset_pushed_notifications(tg_id=user_id)
+                #         print(f"User {user['first_name']} sunday tailing... Resetting notifications")
+                #         continue
+                                    
                 # reset activities to false on wakeup
                 # if wu_day_mins_passed - now_day_mins_passed == 0:
                 #     holiday_check = False
@@ -213,8 +257,6 @@ def push_notifications():
                 #     print(f"Reset activities on wakeup for user {user['first_name']}")
                 #     user['activities'] = parameters
                 #     # continue
-
-
 
                 for a_name, a_data in user['activities'].items():
                     if not a_data.get('scheduled_time'):
@@ -447,7 +489,9 @@ def bot_check_schedule(user_id):
     if not user_activities:
         bot_gp_error(user_id)
         return
-    user_activities_sorted = OrderedDict(sorted(user_activities.items(), key=lambda x:TimeBase(x[1]['scheduled_time']).total_minutes))
+    user_activities_sorted = OrderedDict(sorted(
+        user_activities.items(), key=lambda x:TimeBase(x[1]['scheduled_time']).total_minutes
+    ))
 
     user_data = db.check_user_in_db(user_id)
 

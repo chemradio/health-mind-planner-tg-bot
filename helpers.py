@@ -3,7 +3,13 @@ class TimeBase:
         if t_mins:
             self.total_minutes = t_mins
         else:
-            self.total_minutes = int(timestring[:2]) * 60 + int(timestring[3:])
+            try:
+                self.total_minutes = int(timestring[:2]) * 60 + int(timestring[3:])
+            except:
+                self.total_minutes = int(timestring.split(':')[0]) * 60 + int(timestring.split(':')[1])
+
+    def __str__(self):
+        return f"total mins: {self.total_minutes}, time: {self.hours}:{self.minutes}"
         
     @property
     def hours(self):
