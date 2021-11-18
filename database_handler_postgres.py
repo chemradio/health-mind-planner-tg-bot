@@ -6,8 +6,6 @@ from pprint import pprint
 PG_URI = os.environ.get('DATABASE_URL', 'localhost')
 print(f"PG_URI = {PG_URI}")
 
-PG_URI = 'postgres://wdutabnnunnisl:719441e1ad3e5e9c49bc72271c88a201a08dba4e8acb27a5a60a7d2f27499e7d@ec2-54-228-99-58.eu-west-1.compute.amazonaws.com:5432/d2mjjih48qpdm1'
-
 class DatabaseHandler:
     def __new__(cls):
         if not hasattr(cls, 'instance'):
