@@ -194,7 +194,7 @@ def push_notifications():
                 print(f"{user_first_name} is owl?: {is_owl}")
 
                 # check for trailing friday in saturday
-                if now.weekday() == 6:
+                if now.weekday() == 5:
                     if is_owl:
                         if now_tb > bt_time:
                             print(f"No Friday trail for owl {user_first_name}... Resetting notifications.")

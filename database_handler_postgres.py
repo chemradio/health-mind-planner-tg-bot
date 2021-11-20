@@ -6,8 +6,6 @@ from pprint import pprint
 PG_URI = os.environ.get('DATABASE_URL', 'localhost')
 print(f"PG_URI = {PG_URI}")
 
-PG_URI = 'postgres://wdutabnnunnisl:719441e1ad3e5e9c49bc72271c88a201a08dba4e8acb27a5a60a7d2f27499e7d@ec2-54-228-99-58.eu-west-1.compute.amazonaws.com:5432/d2mjjih48qpdm1'
-
 class DatabaseHandler:
     def __new__(cls):
         if not hasattr(cls, 'instance'):
@@ -36,12 +34,14 @@ class DatabaseHandler:
 
 
     def get_pg_tables(self):
+        """Get list of all available Postgres tables"""
         with self.conn.cursor() as cur:
             cur.execute("""SELECT table_name FROM information_schema.tables
         WHERE table_schema = 'public'""")
             return cur.fetchall()
 
     def create_pg_tables(self):
+        """Create default Postgres tables - namely USERS and NOTIFICATION"""
         with self.conn.cursor() as cur:
             cur.execute("""CREATE TABLE users (
                 pg_ig SERIAL PRIMARY KEY,
@@ -66,6 +66,7 @@ class DatabaseHandler:
             self.conn.commit()
 
     def drop_pg_tables(self):
+        """Delete all Postgres tables. To be used in conjunction with create_pg_tables"""
         tables = self.get_pg_tables()
         if tables:
             with self.conn.cursor() as cur:
@@ -75,12 +76,16 @@ class DatabaseHandler:
 
     ################ users db ################
     def get_all_users(self):
+        """Get all users from Permissions table. Only for Register-ON mode"""
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
             cur.execute("SELECT * from users;")
             return cur.fetchall()
 
 
     def add_init_user(self, user_id):
+        """Add user to DB with init status.
+        Next step is to receive user provided credentials and set status to PENDING.
+        PENDING is for awaiting approval from admin."""
         registered = self.check_user_registered(user_id)
         if not registered:
             with self.conn.cursor() as cur:

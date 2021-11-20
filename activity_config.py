@@ -1,4 +1,5 @@
 class Activity:
+    # convenience class for accessing parameters via dot notation
     def __init__(self, name, description) -> None:
         self.name = name
         self.description = description
@@ -13,4 +14,5 @@ activities = {
     "Сон": "Оптимальное лично для вас время сна согласно хронотипа."
 }
 
+# full activity dict. contains Activity objects for easy access.
 activity_dict = {name: Activity(name, description) for name, description in activities.items()}
