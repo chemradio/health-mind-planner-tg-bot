@@ -157,6 +157,8 @@ def push_notifications():
         print("Sleeping 60 secs")
         time.sleep(60)
         print("Notification thread iteration")
+        
+        now = datetime.now(zoneinfo.ZoneInfo("Europe/Moscow"))
 
         # not pushing on sunday
         if now.date().weekday() == 6:
@@ -165,7 +167,6 @@ def push_notifications():
             continue
 
         notified_users = db.get_notified_users()
-        now = datetime.now(zoneinfo.ZoneInfo("Europe/Moscow"))
 
         # iterate over notified users
         if notified_users:
