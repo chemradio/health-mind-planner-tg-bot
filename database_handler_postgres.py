@@ -1,25 +1,27 @@
 import os
 import psycopg2
 from psycopg2.extras import Json, DictCursor
-from pprint import pprint
+# from pprint import pprint
 
 PG_URI = os.environ.get('DATABASE_URL', 'localhost')
-print(f"PG_URI = {PG_URI}")
+# print(f"PG_URI = {PG_URI}")
 
 class DatabaseHandler:
+    """Class containing all functions for operating with Postgresql db"""
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(DatabaseHandler, cls).__new__(cls)
         return cls.instance
 
     def __init__(self) -> None:
-        """THIS LINES FOR TESTING LOCALLY"""
+        # """THIS LINES FOR TESTING LOCALLY"""
         # self.conn = psycopg2.connect(
         #     host="localhost",
         #     database="postgres",
         #     user="postgres",
         #     password="whirlpool"
         # )
+
         """THIS LINES FOR TESTING ON HEROKU"""
         self.conn = psycopg2.connect(PG_URI)
         
@@ -156,6 +158,7 @@ class DatabaseHandler:
     ################ main db ################
     
     def check_user_in_db(self, user_id):
+        """Check if notifications entry created for user"""
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
             cur.execute("SELECT * from notifications WHERE telegram_id = %s;", (user_id,))
             result = cur.fetchone()
@@ -166,6 +169,7 @@ class DatabaseHandler:
 
 
     def add_db_entry(self, parameters):
+        """Add notifications entry for user. Parameters is a strict dict."""
         if not self.check_user_in_db(parameters['telegram_id']):
             with self.conn.cursor() as cur:
                 cur.execute("INSERT INTO notifications (telegram_id) VALUES (%s);", (parameters['telegram_id'],))
@@ -193,8 +197,7 @@ class DatabaseHandler:
 
 
     def update_entry(self, user_id: int, parameters: dict):
-        print(f'update entry initiated\nuser_id = {user_id}\nParameters:\n')
-        pprint(parameters)
+        """Update user notifications entry"""
         datacell = self.check_user_in_db(user_id)
         if datacell:
             print("User in db passed")
@@ -215,6 +218,7 @@ class DatabaseHandler:
 
 
     def remove_user(self, user_id: int):
+        """Remove user's notifications entry"""
         datacell = self.check_user_in_db(user_id)
         if datacell:
             with self.conn.cursor() as cur:
@@ -226,6 +230,7 @@ class DatabaseHandler:
 
 
     def get_notified_users(self):
+        """Fetch list of all users with notifications turned on"""
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
             cur.execute("SELECT * FROM notifications WHERE notifications = %s", (True, ))
             results = cur.fetchall()
@@ -237,6 +242,8 @@ class DatabaseHandler:
 
 
     def reset_pushed_notifications(self, tg_id=None):
+        """Reset all pushed notifications for all users - Debugging.
+        Or reset all pushed notifications for a single user in id is provided"""
         notified_users = self.get_notified_users()
         if notified_users:
             for user in notified_users:
@@ -258,6 +265,7 @@ class DatabaseHandler:
     ################ admin related ################
     
     def get_register_requests(self):
+        """Get list of all approval pending users"""
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
             cur.execute("SELECT * FROM users WHERE permission = %s", ('pending',))
             results = cur.fetchall()
@@ -268,6 +276,7 @@ class DatabaseHandler:
 
     
     def get_allowed_users(self):
+        """Get list of all allowed users"""
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
             cur.execute("SELECT * FROM users WHERE permission = %s", ('allowed',))
             results = cur.fetchall()
@@ -278,6 +287,7 @@ class DatabaseHandler:
 
     
     def get_blocked_users(self):
+        """Get list of all blocked users"""
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
             cur.execute("SELECT * FROM users WHERE permission = %s", ('blocked',))
             results = cur.fetchall()
@@ -285,8 +295,6 @@ class DatabaseHandler:
             return results
         else:
             return False
-
-
 
 
 db_handler = DatabaseHandler()

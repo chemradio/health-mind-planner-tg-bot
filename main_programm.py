@@ -157,16 +157,13 @@ def push_notifications():
         print("Notification thread iteration")
         notified_users = db.get_notified_users()
         now = datetime.now(zoneinfo.ZoneInfo("Europe/Moscow"))
-        # try:
-        #     if now.hour == 4 and now.minute in [1,2,3,4,5,6,7,8,9]:
-        #         db.reset_pushed_notifications()
-        # except:
-        #     print('COULD NOT RESET NOTIFICATIONS')
 
         # not pushing on sunday
         if now.date().weekday() == 6:
             print("sunday... no notifications. Resetting notifications.")
             db.reset_pushed_notifications()
+            continue
+
         
         # iterate over notified users
         if notified_users:
@@ -212,13 +209,6 @@ def push_notifications():
                         print(f"{user_first_name} sunday tailing... Resetting notifications")
                         db.reset_pushed_notifications(tg_id=user_id)
                         continue
-                
-                # saturday_check = now - timedelta(hours=4)
-                # if saturday_check.date().weekday() == 5 or now.date().weekday() == 6:
-                #     db.reset_pushed_notifications()
-                #     print("Holiday. No notifications.")
-                #     time.sleep(60)
-                #     continue
 
                 pprint(user)
                 print(f"Notifications: current time {now}")

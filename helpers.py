@@ -1,4 +1,5 @@
 class TimeBase:
+    """Class for handling time objects. Creates instances from 00:00 format string"""
     def __init__(self, timestring: str="00:00", t_mins:int = None):
         if t_mins:
             self.total_minutes = t_mins
