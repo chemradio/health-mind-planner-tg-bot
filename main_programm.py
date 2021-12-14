@@ -61,8 +61,7 @@ os.system('clear')
 
 ############## SUPPORT FUNCTIONS ##############
 def check_extract_time(time_input: str) -> str:
-    # fmt = r'\d\d:\d\d'
-    # fmt = r'[012]\d:[012345]\d'
+    """Check user text input to contain 00:00 format string"""
     fmt = r'(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]'
     matches = re.match(fmt, time_input)
     if matches:
@@ -72,6 +71,7 @@ def check_extract_time(time_input: str) -> str:
 
 
 def check_activity_time_awake(user_id: int, activity_time: str='00:00'):
+    """Check if user is awake on provided activity time"""
     is_owl = False
     user_data = db.check_user_in_db(user_id)
     wu = TimeBase(user_data['wakeup'])
@@ -92,16 +92,17 @@ def check_activity_time_awake(user_id: int, activity_time: str='00:00'):
 
 
 def check_user_activities(user_id):
+    """Get user's activity dict from DB"""
     user_data = db.check_user_in_db(user_id)
     if user_data:
         return user_data.get('activities', False)
 
 
 def check_all_activities_entered(user_id):
+    """Check if user has entered all activities"""
     user_activities = check_user_activities(user_id)
     if not user_activities:
         return
-
     entered_activities = [a_name for a_name, a_data in user_activities.items() if a_data['scheduled_time'] and a_name != "Сон"]
     if len(entered_activities) == (len(activity_dict) -1):
         return True
@@ -110,6 +111,7 @@ def check_all_activities_entered(user_id):
 
 
 def check_user_permission(user_id):
+    """Check user permission"""
     if not REGISTER_REQUIRED:
         return True
     db_query = db.check_user_registered(user_id)
@@ -136,7 +138,6 @@ def check_user_permission(user_id):
         bot_ask_register(user_id)
         return False
         
-
 
 def push_register_request(user_id, credentials: str):
     for admin in ADMIN_IDS:
@@ -224,32 +225,6 @@ def push_notifications():
                     db.reset_pushed_notifications(tg_id=user_id)
                     print(f"User {user['first_name']} is asleep... Resetting notifications")
                     continue
-                
-                # # check if user already woke up on monday
-                # if now.weekday() == 0:
-                #     if now_tb < wu_time:
-                #         db.reset_pushed_notifications(tg_id=user_id)
-                #         print(f"User {user['first_name']} sunday tailing... Resetting notifications")
-                #         continue
-                                    
-                # reset activities to false on wakeup
-                # if wu_day_mins_passed - now_day_mins_passed == 0:
-                #     holiday_check = False
-                #     if now.today().weekday() in (5,6):
-                #         holiday_check = True
-
-                #     parameters = user['activities']
-                #     for a_name in parameters.keys():
-                #         parameters[a_name]['today_check'] = False
-                #         parameters[a_name]['1h_before_pushed'] = False
-                #         parameters[a_name]['10m_before_pushed'] = False
-                #         parameters[a_name]['on_time_pushed'] = False
-                #         parameters[a_name]['5m_after_pushed'] = False
-
-                #     db.update_entry(user_id, {'activities': parameters})
-                #     print(f"Reset activities on wakeup for user {user['first_name']}")
-                #     user['activities'] = parameters
-                #     # continue
 
                 for a_name, a_data in user['activities'].items():
                     if not a_data.get('scheduled_time'):
@@ -694,12 +669,11 @@ def blocked_users(update: Update, _: CallbackContext) -> None:
 
 ############## /START COMMAND ##############
 
-def start(update: Update, _: CallbackContext) -> None:
 
+def start(update: Update, _: CallbackContext) -> None:
     user_id = update.message.from_user.id
     # check allowed
     if not check_user_permission(user_id):
-
         return
 
     user_data = db.check_user_in_db(update.message.from_user.id)
@@ -940,10 +914,6 @@ def inline_button_handler(update: Update, _: CallbackContext) -> None:
                 db.block_user(target_user)
                 db.remove_user(target_user)
                 return
-
-
-
-
 
         user_data = db.check_user_in_db(user_id)
         # print(user_data)

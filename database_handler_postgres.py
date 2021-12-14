@@ -38,8 +38,7 @@ class DatabaseHandler:
     def get_pg_tables(self):
         """Get list of all available Postgres tables"""
         with self.conn.cursor() as cur:
-            cur.execute("""SELECT table_name FROM information_schema.tables
-        WHERE table_schema = 'public'""")
+            cur.execute("""SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'""")
             return cur.fetchall()
 
     def create_pg_tables(self):
