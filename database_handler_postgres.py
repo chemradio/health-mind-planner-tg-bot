@@ -19,7 +19,7 @@ class DatabaseHandler:
         #     host="localhost",
         #     database="postgres",
         #     user="postgres",
-        #     password="whirlpool"
+        #     password="12345"
         # )
 
         """THIS LINES FOR TESTING ON HEROKU"""

@@ -2,7 +2,7 @@ from main_programm import *
 import requests
 
 USE_WEBHOOK = True
-APP_URL = 'https://whispering-depths-18963.herokuapp.com'
+APP_URL = ''
 PORT = int(os.environ.get('PORT', '8443'))
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 
